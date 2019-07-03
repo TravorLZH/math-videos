@@ -1,12 +1,15 @@
 # Makefile to build manim videos
-QUALITY=1440p60
-OUTPUT_FOLDER=$(CURDIR)/media/videos/scenes/$(QUALITY)
+QUALITY_LOW=480p15
+QUALITY_MEDIUM=720p30
+QUALITY_HIGH=1440p60
+QUALITY=$(QUALITY_LOW)
+OUTPUT_FOLDER=$(CURDIR)/videos/scenes/$(QUALITY)
 
 .PHONY:	all scenes
 all:	output.mp4
 
 list.txt:	scenes.py
-	./build_scenes.py
+	./build_scenes.py $(QUALITY)
 	touch list.txt
 
 output.mp4:	list.txt

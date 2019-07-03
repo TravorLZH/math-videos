@@ -1,4 +1,6 @@
 media/
 files/
+Tex/
+videos/
 __pycache__/
 *.mp4
