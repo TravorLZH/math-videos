@@ -290,6 +290,103 @@ class LimitScene(GraphScene):
         self.wait()
         self.play(FadeOut(summary))
 
+class DerivativeScene(GraphScene):
+    CONFIG={
+        "x_min":-1,
+        "x_max":2,
+        "y_min":-1,
+        "y_max":2,
+        "graph_origin":4*LEFT+1.8*DOWN
+    }
+    @staticmethod
+    def func(x):
+        return np.cos(3*x)+2*np.sin(x)
+    @staticmethod
+    def dfunc(x):
+        return -3*np.sin(3*x)+2*np.cos(x)
+    def secant_line(self,x):
+        return self.slope*(x-self.x0)+self.y0
+    def update_secant(self,x,y):
+        self.slope=(y-self.y0)/(x-self.x0)
+        return (Dot(self.coords_to_point(x,y)),
+                self.get_graph(self.secant_line,color=YELLOW))
+    def update_text(self,dx):
+        str_dx="%f" % dx
+        str_slope="%f" % self.slope
+        formula="\\frac{\\Delta y}{\\Delta x}={f(%f+%f)-f(%f)\\over%f}=%f"
+        return TexMobject(formula % (self.x0,dx,self.x0,dx,self.slope),
+            tex_to_color_map={
+                self.str_x0:GREEN,
+                str_dx:RED,
+                str_slope:YELLOW
+            }).to_edge(RIGHT).to_edge(DOWN).scale(0.7)
+    def construct(self):
+        title=TextMobject("Differential Calculus",
+            tex_to_color_map={"Differential":YELLOW})
+        self.play(FadeIn(title))
+        self.wait()
+        self.play(FadeOut(title))
+        self.setup_axes(animate=True)
+        graph=self.get_graph(self.func,color=GREEN)
+        label=self.get_graph_label(graph,"f(x)")
+        self.play(ShowCreation(graph),Write(label))
+        self.wait()
+        # Now draw a secant line
+        self.x0=0.2
+        self.y0=self.func(self.x0)
+        self.str_x0="%f" % self.x0
+        pt1=Dot(self.coords_to_point(self.x0,self.y0))
+        self.play(ShowCreation(pt1))
+        x=1.2
+        y=self.func(x)
+        pt2_orig,line_orig=self.update_secant(x,y)
+        self.play(ShowCreation(pt2_orig))
+        self.wait()
+        self.play(ShowCreation(line_orig))
+        dx=0.1
+        formula_orig=self.update_text(dx)
+        self.play(ShowCreation(formula_orig))
+        for i in range(6):
+            x=self.x0+dx
+            (pt2,line)=self.update_secant(x,self.func(x))
+            self.play(Transform(formula_orig,self.update_text(dx)))
+            self.play(Transform(pt2_orig,pt2),Transform(line_orig,line))
+            dx/=10
+        self.wait()
+        # Now show the limit expression
+        str_dfunc="%f" % self.dfunc(self.x0)
+        formula_lim=TexMobject(
+            "\\frac{dy}{dx}=\\lim_{\\Delta x \\to 0}{f(%f+\\Delta x)-f(%f)" \
+            "\\over \\Delta x}=%f" % (self.x0,self.x0,self.dfunc(self.x0)),
+            tex_to_color_map={
+                self.str_x0:GREEN,
+                "_{\\Delta x \\to 0}":RED,
+                "\\Delta x":RED,
+                str_dfunc:YELLOW
+            })
+        formula_lim_orig= \
+            deepcopy(formula_lim).to_edge(RIGHT).to_edge(DOWN).scale(0.7)
+        self.play(Transform(formula_orig,formula_lim_orig))
+        self.wait()
+        self.play(FadeOut(pt1),FadeOut(pt2_orig),FadeOut(line_orig),
+            FadeOut(graph),FadeOut(label),FadeOut(self.axes),
+            Transform(formula_orig,formula_lim))
+        self.wait()
+        formula_simplified=TexMobject("\\because\\space \\frac{dy}{dx}=" \
+                "%f" % self.dfunc(self.x0),
+                tex_to_color_map={str_dfunc:YELLOW})
+        summary=TextMobject( \
+            "$\\therefore$ The slope to the tangent line is %f"
+            % self.dfunc(self.x0),
+            tex_to_color_map={
+                str_dfunc:YELLOW
+            })
+        group=VGroup(summary,formula_simplified).arrange(UP)
+        self.play(Transform(formula_orig,group))
+        self.wait()
+        self.play(FadeOut(formula_orig))
+        self.wait()
+
 class ThanksScene(Scene):
     def construct(self):
         poweredby=TextMobject("Powered by \\LaTeX\\ and manim",
