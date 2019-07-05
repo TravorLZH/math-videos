@@ -322,7 +322,7 @@ class DerivativeScene(GraphScene):
             }).to_edge(RIGHT).to_edge(DOWN).scale(0.7)
     def construct(self):
         title=TextMobject("Differential Calculus",
-            tex_to_color_map={"Differential":YELLOW})
+            tex_to_color_map={"Differential":YELLOW}).scale(2.0)
         self.play(FadeIn(title))
         self.wait()
         self.play(FadeOut(title))
@@ -372,11 +372,11 @@ class DerivativeScene(GraphScene):
             FadeOut(graph),FadeOut(label),FadeOut(self.axes),
             Transform(formula_orig,formula_lim))
         self.wait()
-        formula_simplified=TexMobject("\\because\\space \\frac{dy}{dx}=" \
+        formula_simplified=TexMobject("\\because \\frac{dy}{dx}=" \
                 "%f" % self.dfunc(self.x0),
                 tex_to_color_map={str_dfunc:YELLOW})
         summary=TextMobject( \
-            "$\\therefore$ The slope to the tangent line is %f"
+            "$\\therefore$The slope to the tangent line is %f"
             % self.dfunc(self.x0),
             tex_to_color_map={
                 str_dfunc:YELLOW
@@ -385,6 +385,194 @@ class DerivativeScene(GraphScene):
         self.play(Transform(formula_orig,group))
         self.wait()
         self.play(FadeOut(formula_orig))
+        self.wait()
+
+class IntegralScene(GraphScene):
+    CONFIG={
+        "x_min":-1,
+        "x_max":5,
+        "y_min":-1,
+        "y_max":5,
+        "graph_origin":2*LEFT+2*DOWN
+    }
+    @staticmethod
+    def curve(x):
+        return 4.0/(x**2+1)+1
+    @staticmethod
+    def curve_int(x):
+        return 4*np.arctan(x)+x
+    def fade_in_and_out(self,obj):
+        self.play(FadeIn(obj))
+        self.wait()
+        self.play(FadeOut(obj))
+    def title_and_show_axes(self):
+        self.title=TextMobject("Integral Calculus",
+            tex_to_color_map={"Integral":BLUE}).scale(2.0)
+        self.play(FadeIn(self.title))
+        self.wait()
+        self.setup_axes(animate=True)
+        todo=TextMobject("Find the area under the curve",
+            tex_to_color_map={
+                "area":BLUE,
+                "curve":YELLOW
+            })
+        self.graph=self.get_graph(self.curve,color=YELLOW)
+        self.label=self.get_graph_label(self.graph,"f(x)=\\frac{4}{x^2+1}+1") \
+            .scale(0.7)
+        gp=VGroup(todo,self.label).arrange(UP).to_edge(RIGHT).to_edge(DOWN)
+        self.play(Transform(self.title,gp))
+        self.play(ShowCreation(self.graph))
+    def todo_to_riemann_sum(self):
+        todo_sum=TextMobject("Find the Riemann sum under the curve",
+            tex_to_color_map={
+                "Riemann sum":BLUE,
+                "curve":YELLOW
+            })
+        gp2=VGroup(todo_sum,self.label).arrange(UP).to_edge(RIGHT) \
+            .to_edge(DOWN)
+        self.play(Transform(self.title,gp2))
+    @staticmethod
+    def label_dx(a,dx):
+        pt1=self.coords_to_point(a,0)
+        pt2=self.coords_to_point(a+dx,0)
+        line=Line(pt1,pt2,color=YELLOW)
+    @staticmethod
+    def right_riemann_sum(ifrom,ito,func,dx):
+        x=np.arange(ifrom+dx,ito+dx,dx)
+        dy=func(x)*dx
+        return np.sum(dy)
+    def construct(self):
+        self.title_and_show_axes()
+        a=1
+        b=4
+        n=2
+        dx=(b-a)/n
+        formula="A=\\sum^n_{i=1} f({a}+i\\cdot{\\Delta x}) {\\Delta x}"
+        formula_obj=TexMobject(formula,
+            tex_to_color_map={
+                "A":BLUE,
+                "i":GREEN,
+                "{a}":ORANGE,
+                "{\\Delta x}":YELLOW
+            })
+        line_a=self.get_vertical_line_to_graph(a,self.graph,color=ORANGE)
+        line_b=self.get_vertical_line_to_graph(b,self.graph,color=RED)
+        dot_a=Dot(self.coords_to_point(a,0),color=ORANGE)
+        dot_b=Dot(self.coords_to_point(b,0),color=RED)
+        self.wait()
+        riemann_rect_orig= \
+            self.get_riemann_rectangles(self.graph,a,b,dx,"right")
+        self.play(
+            ShowCreation(riemann_rect_orig),
+            ShowCreation(dot_a),ShowCreation(line_a),
+            ShowCreation(dot_b),ShowCreation(line_b)
+        )
+        self.fade_in_and_out(TextMobject("%d rectangles" % n).to_edge(RIGHT) \
+            .to_edge(UP))
+        self.todo_to_riemann_sum()
+        n_format="n=%d"
+        dx_format="\\Delta x=%f"
+        n_orig=TexMobject(n_format % n)
+        dx_orig=TexMobject("\\Delta x={b-{a} \\over n}",
+            tex_to_color_map={
+                "\\Delta x":YELLOW,
+                "{b":RED,
+                "{a}":ORANGE
+            })
+        Ai_obj=TexMobject("A_i=f(a+{i}{\\Delta x}){\\Delta x}",
+            tex_to_color_map={
+                "A":BLUE,"_i":GREEN,"{i}":GREEN,"{\\Delta x}":YELLOW
+            })
+        VGroup(Ai_obj,dx_orig,n_orig).arrange(UP).to_edge(LEFT)
+        self.play(ShowCreation(n_orig))
+        self.wait()
+        self.fade_in_and_out(TextMobject( \
+            "$\\Delta x$=width, $f(x)$=height",
+            tex_to_color_map={
+                "$\\Delta x$":YELLOW,
+                "$f(x)$":GREEN
+            }) \
+            .to_edge(RIGHT).to_edge(UP))
+        self.play(ShowCreation(dx_orig),ShowCreation(Ai_obj))
+        # Now do animation for n from 3 to 6 (inclusive)
+        for n in range(3,6+1):
+            self.wait()
+            dx=(b-a)/n
+            n_obj=TexMobject(n_format % n)
+            dx_obj=TexMobject(dx_format % dx,tex_to_color_map={
+                "\\Delta x":YELLOW})
+            riemann_rect_obj=self.get_riemann_rectangles(self.graph,a,b,dx, \
+                "right")
+            VGroup(Ai_obj,dx_obj,n_obj).arrange(UP).to_edge(LEFT)
+            self.play(Transform(n_orig,n_obj),Transform(dx_orig,dx_obj),
+                Transform(riemann_rect_orig,riemann_rect_obj))
+        self.wait()
+        A_format="A=%f"
+        A_orig=TexMobject(A_format % self.right_riemann_sum(a,b,self.curve,dx),
+            tex_to_color_map={
+                "A":BLUE
+            })
+        A_gp=VGroup(A_orig,formula_obj).arrange(UP).to_edge(RIGHT).to_edge(UP)
+        self.play(ShowCreation(A_gp),FadeOut(Ai_obj))
+        self.wait()
+        # Now twice n for 3 times
+        for i in range(3):
+            n*=2
+            dx=(b-a)/n
+            n_obj=TexMobject(n_format % n)
+            dx_obj=TexMobject(dx_format % dx,tex_to_color_map={
+                "\\Delta x":YELLOW})
+            A_obj=TexMobject(A_format % self.right_riemann_sum(a,b,
+                self.curve,dx),
+                tex_to_color_map={
+                    "A":BLUE
+                })
+            riemann_rect_obj=self.get_riemann_rectangles(self.graph,a,b,dx, \
+                "right")
+            VGroup(dx_obj,n_obj).arrange(UP).to_edge(LEFT)
+            gpx=VGroup(A_obj,formula_obj).arrange(UP).to_edge(RIGHT) \
+                .to_edge(UP)
+            self.play(Transform(n_orig,n_obj),Transform(dx_orig,dx_obj),
+                Transform(riemann_rect_orig,riemann_rect_obj),
+                Transform(A_gp,gpx))
+        self.wait()
+        n_lim=TexMobject("n \\to \\infty")
+        dx_lim=TexMobject("\\Delta x \\to dx",
+            tex_to_color_map={
+                "\\Delta x":YELLOW,
+                "dx":YELLOW})
+        area=self.get_area(self.graph,a,b)
+        A=self.curve_int(b)-self.curve_int(a)   # Newton-Leibniz formula
+        formula_lim=TexMobject("A\\to\\int_{a}^{b}f(x)dx=%f" % A,
+            tex_to_color_map={
+                "A":BLUE,
+                "dx":YELLOW
+            }).to_edge(RIGHT).to_edge(UP)
+        VGroup(dx_lim,n_lim).arrange(UP).to_edge(LEFT)
+        self.play(Transform(n_orig,n_lim),Transform(dx_orig,dx_lim),
+            Transform(riemann_rect_orig,area),Transform(A_gp,formula_lim))
+        self.wait()
+        # Now hide everything
+        self.play(FadeOut(n_orig),FadeOut(dx_orig),FadeOut(A_gp),
+                FadeOut(riemann_rect_orig),FadeOut(self.graph),
+                FadeOut(self.label),FadeOut(self.axes),FadeOut(line_a),
+                FadeOut(line_b),FadeOut(dot_a),FadeOut(dot_b))
+        summary=TexMobject( \
+            "\\therefore\\lim_{n\\to\\infty}\\sum_{i=0}^nf(a+i\\cdot" \
+            "\\frac{b-a}n)\\frac{n-a}n=\\int_a^bf(x)dx")
+        msg=TextMobject("Or even more vigorous")
+        self.play(Transform(self.title,summary))
+        self.wait()
+        self.play(Transform(self.title,msg))
+        simpler=VGroup( \
+            TexMobject("\\exists \\space \\Delta x=\\frac{b-a}n"),
+            TexMobject("\\exists \\space x_i=a+i\\cdot\\Delta x"),
+            TexMobject("\\therefore \\lim_{n\\to\\infty}" \
+                "\\sum_{i=0}^nf(x_i)\\Delta x=\\int_a^bf(x)dx") \
+        ).arrange(DOWN)
+        self.play(Transform(self.title,simpler))
+        self.wait()
+        self.play(FadeOut(self.title))
         self.wait()
 
 class ThanksScene(Scene):
