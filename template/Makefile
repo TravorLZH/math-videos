@@ -15,7 +15,7 @@ all-scenes:	scenes.py
 merge:
 	cp list.txt $(OUTPUT_FOLDER)/
 	(cd $(OUTPUT_FOLDER); ffmpeg -y -f concat -safe 0 -i list.txt \
-		-c copy $(CURDIR)/output.mp4)
+		-c copy $(CURDIR)/output.mp4 2>/dev/null)
 
 %:
 	../template/build_scenes.py $(QUALITY) $@

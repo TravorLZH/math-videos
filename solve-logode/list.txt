@@ -1,2 +1,6 @@
 file OpenningScene.mp4
 file AnalyzeEqnScene.mp4
+file SeparateEqnScene.mp4
+file IntegrateLeftScene.mp4
+file FindFuncScene.mp4
+file SolveC4Scene.mp4
