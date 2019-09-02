@@ -232,4 +232,9 @@ class SolveC4Scene(Scene):
         thanks=VGroup(created_by,author).arrange(RIGHT)
         gp=VGroup(thanks,poweredby).arrange(DOWN).scale(1.8).to_edge(UP)
         self.play(ShowCreation(gp))
+        eqn_name=TextMobject("The Logistic function",
+            tex_to_color_map={
+                "Logistic":ORANGE
+            }).scale(1.5)
+        self.play(Write(eqn_name))
         self.wait(20)
