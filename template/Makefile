@@ -3,7 +3,7 @@ QUALITY_LOW=480p15
 QUALITY_MEDIUM=720p30
 QUALITY_HIGH=1440p60
 include quality.mk
-OUTPUT_FOLDER=$(CURDIR)/videos/scenes/$(QUALITY)
+OUTPUT_FOLDER=$(CURDIR)/media/videos/scenes/$(QUALITY)
 
 .PHONY:	all all-scenes merge clean
 all:
