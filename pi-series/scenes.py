@@ -1,4 +1,5 @@
 from manimlib.imports import *
+import numpy as np
 
 class PiSeriesIntro(Scene):
     def construct(self):
@@ -97,7 +98,7 @@ class WhatIsSeries(Scene):
                 "series":YELLOW
             })
         series_eqn=TexMobject(r"s=\lim_{n\to\infty}s_n")
-        series_eqn2=TexMobject(r"s=\sum_{i=0}^\infty a_n").scale(1.5)
+        series_eqn2=TexMobject(r"s=\sum_{i=0}^\infty a_i").scale(1.5)
         gp=VGroup(series_txt,series_eqn).arrange(DOWN).scale(1.5)
         series_eqn2.next_to(series_txt,DOWN)
         self.play(ShowCreation(gp))
@@ -206,7 +207,110 @@ class ArctanSeriesScene(Scene):
             new_eqn.next_to(d_tit,DOWN)
             self.wait()
             self.play(Transform(eqn,new_eqn))
+        self.wait(2)
+        self.play(FadeOut(d_tit),FadeOut(eqn))
+        self.wait()
     def construct(self):
         tit=Title(r"Use series to represent arc tangent")
         self.play(ShowCreation(tit))
         self.arctan_deriv()
+        gs_eqn=TexMobject(r"{1\over1-r}=\sum_{i=0}^\infty r^i").scale(2)
+        self.play(Write(gs_eqn))
+        subst=TexMobject(r"r=-x^2").scale(1.5).to_edge(DOWN)
+        self.play(VFadeInThenOut(subst))
+        self.wait()
+        eqn_chg=[
+            r"{1\over1-(-x^2)}=\sum_{i=0}^\infty(-x^2)^i",
+            r"{1\over1+x^2}=\sum_{i=0}^\infty(-1)^ix^{2i}",
+            r"{1\over1+x^2}=1-x^2+x^4-x^6+\dots"
+        ]
+        for eqn in eqn_chg:
+            txt=TexMobject(eqn).scale(1.5)
+            self.play(Transform(gs_eqn,txt))
+            self.wait()
+        int_txt=TextMobject(r"Integrate both side to get $\arctan(x)$",
+            tex_to_color_map={
+                "Integrate":RED
+            }).scale(1.5).to_edge(DOWN)
+        self.play(VFadeInThenOut(int_txt))
+        eqn_int=[
+            r"\int_0^u{1\over1+x^2}dx=\int_0^u(1-x^2+x^4-x^6+\dots)dx",
+            r"\arctan(u)=\int_0^u(1-x^2+x^4-x^6+\dots)dx",
+            r"\arctan(u)=u-{u^3\over3}-{u^6\over6}+{u^8\over8}-\dots",
+            r"\arctan(u)=\sum_{i=0}^\infty(-1)^i{u^{2i+1}\over2i+1}"
+        ]
+        for stuff in eqn_int:
+            self.play(Transform(gs_eqn,TexMobject(stuff,
+                tex_to_color_map={r"\int_0^u":RED}).scale(1.3)))
+            self.wait()
+        self.play(FadeOut(gs_eqn),FadeOut(tit))
+
+class PiSeriesScene(GraphScene):
+    CONFIG={
+        "x_min":-0.8,
+        "x_max":1.2,
+        "y_min":-0.8,
+        "y_max":1.2,
+        "graph_origin":2*LEFT
+    }
+    def construct(self):
+        self.setup_axes(animate=True)
+        tanx=self.get_graph(np.tan,color=YELLOW)
+        lbl=self.get_graph_label(tanx,r"y=\tan(x)")
+        self.play(ShowCreation(tanx),FadeIn(lbl))
+        pt=self.coords_to_point(np.pi/4,1)
+        dot=Dot(pt)
+        self.play(FadeIn(dot))
+        pt2=self.coords_to_point(np.pi/4,0)
+        pt3=self.coords_to_point(0,1)
+        lne=Line(pt,pt2,color=RED)
+        lne2=Line(pt,pt3,color=GREEN)
+        txt=TexMobject("1",color=GREEN)
+        txt2=TexMobject(r"{\pi\over4}",color=RED)
+        txt.next_to(lne2,LEFT)
+        txt2.next_to(lne,DOWN)
+        gp=VGroup(dot,lne,lne2,txt,txt2)
+        self.wait()
+        self.play(FadeIn(lne),FadeIn(txt))
+        self.play(FadeIn(lne2),FadeIn(txt2))
+        self.wait()
+        concld=TexMobject(r"\arctan(1)={\pi\over4}").scale(1.3).to_edge(RIGHT) \
+            .to_edge(DOWN)
+        self.play(Transform(lbl,concld))
+        self.play(FadeOut(gp),FadeOut(tanx),FadeOut(self.axes))
+        self.wait()
+        # Now show the proof about series
+        eqn=TexMobject(r"\arctan(x)=\sum_{i=0}^\infty(-1)^i{x^{2i+1}\over2i+1}") \
+            .scale(1.3)
+        self.play(Write(eqn),FadeOut(lbl))
+        self.wait()
+        eqns=[
+            r"\arctan(1)=\sum_{i=0}^\infty(-1)^i{1\over2i+1}",
+            r"{\pi\over4}=\sum_{i=0}^\infty(-1)^i{1\over2i+1}",
+            r"\pi=\sum_{i=0}^\infty(-1)^i{4\over2i+1}"
+        ]
+        for stuff in eqns:
+            self.play(Transform(eqn,TexMobject(stuff).scale(1.3)))
+            self.wait()
+        eqn_final=TexMobject(r"\pi=4-\frac34+\frac45-\frac47+\dots",
+            tex_to_color_map={
+                r"\pi":BLUE
+            }).scale(2).to_edge(DOWN)
+        # Now show acknowledgments
+        self.play(Transform(eqn,eqn_final))
+        author=TextMobject("@TravorLZH")
+        author.set_color_by_gradient(RED,YELLOW)
+        thanks=VGroup(TextMobject("Created by"),author).arrange(RIGHT)
+        gp=VGroup(thanks,TextMobject(r"Powered by \LaTeX{} and manim",
+            tex_to_color_map={
+                r"\LaTeX{}":GREEN,
+                "manim":BLUE
+            })).arrange(DOWN).scale(1.5).to_edge(UP)
+        self.play(FadeIn(gp))
+        self.play(Write(TextMobject(r"Representation of $\pi$ by series",
+            tex_to_color_map={
+                "Representation":RED,
+                r"$\pi$":BLUE,
+                "series":YELLOW
+            }).scale(2)))
+        self.wait(10)
