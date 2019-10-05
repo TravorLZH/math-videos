@@ -2,3 +2,4 @@ __pycache__/
 videos/
 Tex/
 *.mp4
+.DS_Store
