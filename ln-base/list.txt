@@ -1,3 +1,7 @@
 file IntroScene.mp4
 file LnScene.mp4
 file LnPropScene.mp4
+file EScene.mp4
+file LnBaseScene.mp4
+file EDerivativeScene.mp4
+file ThanksScene.mp4
