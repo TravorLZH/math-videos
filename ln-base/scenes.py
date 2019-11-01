@@ -127,11 +127,11 @@ class LnPropScene(Scene):
             })
         tmp.next_to(el0,DOWN)
         for i,(er,el) in enumerate(zip(ers,els)):
-            self.play(Transform(er0,er))
+            self.play(Transform(er0,er),TurnInsideOut(el0))
             self.wait()
             if i==0:
                 self.play(FadeIn(tmp))
-            self.play(Transform(el0,el))
+            self.play(Transform(el0,el),Indicate(er0))
             if i==0:
                 self.play(FadeOut(tmp))
             self.wait()
